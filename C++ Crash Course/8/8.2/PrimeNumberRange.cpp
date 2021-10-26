@@ -32,9 +32,9 @@ bool PrimeNumberIterator::isPrime(int num) const
 {
     for(int i{2}; i <= sqrt(num); i++)
     {
-        if(num % i) return true;
+        if(num % i == 0) return false;
     }
-    return false;
+    return true;
 }
 
 PrimeNumberRange::PrimeNumberRange(int max) :

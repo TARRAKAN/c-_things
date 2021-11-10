@@ -5,7 +5,7 @@
 int main()
 {
     printf("Prime:\n");
-    for(const auto i: PrimeNumberRange{1000})
+    for(const auto i: PrimeNumberRange{5000})
     {
         printf("%d ", i);
     }

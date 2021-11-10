@@ -28,7 +28,7 @@ int PrimeNumberIterator::operator*() const
     return current;
 }
 
-bool PrimeNumberIterator::isPrime(int num) const
+inline bool PrimeNumberIterator::isPrime(int num) const
 {
     for(int i{2}; i <= sqrt(num); i++)
     {

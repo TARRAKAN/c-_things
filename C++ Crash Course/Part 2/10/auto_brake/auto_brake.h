@@ -11,6 +11,18 @@ public:
               speed_mps{0},
               collision_threshold_s{5}
     {
+        bus.subscribe([this](const SpeedUpdate& update){
+            speed_mps = update.velocity_mps;
+        });
+        bus.subscribe([this, &bus](const CarDetected& cd){
+            const auto relativeVelocityMps = speed_mps - cd.velocity_mps;
+            const auto timeToCollision = cd.distance_m / relativeVelocityMps;
+            if(timeToCollision > 0 &&
+                timeToCollision <= collision_threshold_s)
+            {
+                bus.publish(BrakeCommand{timeToCollision});
+            }
+        });
     }
     
     void set_collision_threshold_s(double x)

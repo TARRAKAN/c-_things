@@ -29,10 +29,10 @@ void initial_sensitivity_is_five()
 void sensitivity_greater_than_1()
 {
     MockServiceBus bus{};
-    AutoBrake aut_brake{bus};
+    AutoBrake auto_brake{bus};
     try
     {
-        aut_brake.set_collision_threshold_s(0.5L);
+        auto_brake.set_collision_threshold_s(0.5L);
     }
     catch(const std::exception&)
     {
@@ -54,35 +54,27 @@ void speed_is_saved()
     assert_that(0L == auto_brake.get_speed_mps(), "speed isn't saved to 0");
 }
  
-// void alert_when_imminent()
-// {
-//     int brake_commands_published{0};
-//     AutoBrake auto_brake{
-//         [&brake_commands_published](const BrakeCommand&)
-//         {
-//             brake_commands_published++;
-//         }
-//     };
-//     auto_brake.set_collision_threshold_s(10L);
-//     auto_brake.observe(SpeedUpdate{100L});
-//     auto_brake.observe(CarDetected{100L, 0L});
-//     assert_that(brake_commands_published == 1, "brake commands published not one");
-// }
-// 
-// void no_alert_when_no_imminent()
-// {
-//     int brake_commands_published{0};
-//     AutoBrake auto_brake{
-//         [&brake_commands_published](const BrakeCommand&)
-//         {
-//             brake_commands_published++;
-//         }
-//     };
-//     auto_brake.set_collision_threshold_s(2L);
-//     auto_brake.observe(SpeedUpdate{100L});
-//     auto_brake.observe(CarDetected{1000L, 50L});
-//     assert_that(brake_commands_published == 0, "brake commands published");
-// }
+void alert_when_imminent()
+{
+    MockServiceBus bus{};
+    AutoBrake auto_brake{bus};
+    auto_brake.set_collision_threshold_s(10L);
+    bus.speedUpdateCallback(SpeedUpdate{100L});
+    bus.carDetectedCallback(CarDetected{100L, 0L});
+    assert_that(bus.commandsPublished == 1, "1bc wn pub");
+    assert_that(bus.lastCommand.time_to_collision_s == 1L, "tc n comp corr");
+}
+
+void no_alert_when_no_imminent()
+{
+    MockServiceBus bus{};
+    AutoBrake auto_brake{bus};
+    auto_brake.set_collision_threshold_s(2L);
+    bus.speedUpdateCallback(SpeedUpdate{100L});
+    bus.carDetectedCallback(CarDetected{1000L, 50L});
+    
+    assert_that(bus.commandsPublished == 0, "brake commands published");
+}
 // 
 void run_tests(void(*unit_test)(), const char* name)
 {
@@ -114,7 +106,7 @@ int main()
     run_tests(initial_sensitivity_is_five, "initial sensitivity is 5");
     run_tests(sensitivity_greater_than_1, "sensitivity greater than 1");
     run_tests(speed_is_saved, "speed is saved");
-    //run_tests(alert_when_imminent, "alert when imminent");
-    //run_tests(no_alert_when_no_imminent, "no alert when no imminent");
+    run_tests(alert_when_imminent, "alert when imminent");
+    run_tests(no_alert_when_no_imminent, "no alert when no imminent");
     return 0;
 }

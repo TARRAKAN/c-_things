@@ -9,11 +9,17 @@ class AutoBrake
 public:
     AutoBrake(IServiceBus& bus):
               speed_mps{0},
-              collision_threshold_s{5}
+              collision_threshold_s{5},
+              speedLimit{39}
     {
-        bus.subscribe([this](const SpeedUpdate& update){
+        bus.subscribe([this, &bus](const SpeedUpdate& update){
             speed_mps = update.velocity_mps;
+            if(update.velocity_mps > speedLimit)
+            {
+                bus.publish(BrakeCommand{0});
+            }
         });
+        
         bus.subscribe([this, &bus](const CarDetected& cd){
             const auto relativeVelocityMps = speed_mps - cd.velocity_mps;
             const auto timeToCollision = cd.distance_m / relativeVelocityMps;
@@ -21,6 +27,13 @@ public:
                 timeToCollision <= collision_threshold_s)
             {
                 bus.publish(BrakeCommand{timeToCollision});
+            }
+        });
+        bus.subscribe([this, &bus](const SpeedLimitDetected& update){
+            speedLimit = update.speed_mps;
+            if(speed_mps > update.speed_mps)
+            {
+                bus.publish(BrakeCommand{0});
             }
         });
     }
@@ -40,9 +53,15 @@ public:
     {
         return speed_mps;
     }
+    
+    unsigned short getSpeedLimit()
+    {
+        return speedLimit;
+    }
 
 private:
     double collision_threshold_s;
     double speed_mps;
+    unsigned short speedLimit;
 };
 #endif//SERVICE_BUS

@@ -18,8 +18,14 @@ struct MockServiceBus : IServiceBus
         carDetectedCallback = callback;
     }
     
+    virtual void subscribe(SpeedLimitDetectedCallback callback)
+    {
+        speedLimitCallback = callback;
+    }
+    
     BrakeCommand lastCommand{};
     int commandsPublished{};
     SpeedUpdateCallback speedUpdateCallback{};
     CarDetectedCallback carDetectedCallback{};
+    SpeedLimitDetectedCallback speedLimitCallback{};
 };
